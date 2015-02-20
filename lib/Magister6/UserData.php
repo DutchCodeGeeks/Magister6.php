@@ -6,17 +6,17 @@
 
 class Magister6_UserData {
 	public function __construct(Magister6 $master) {
-        $this->master = $master;
-    }
+		$this->master = $master;
+	}
 
-    /*
+	/*
 		This method will obtain required user data
-    */
+	*/
 
-    public function get($username) {
-    	$magister = $this->master;
+	public function get($username) {
+		$magister = $this->master;
 
-    	$userDataUrl = $magister->baseURL."/api/account";
+		$userDataUrl = $magister->baseURL."/api/account";
 		$userData = $magister->get($userDataUrl, $magister->cookieId);
 		
 		$magister->magisterId = $userData->Persoon->Id;
@@ -26,11 +26,11 @@ class Magister6_UserData {
 		return new Profile_Adapter($username, $userData->Persoon->Roepnaam, $lastName, $dateOfBirth);
 		//return array("username" => $username, "firstName" => $userData->Persoon->Roepnaam, "lastName" => $userData->Persoon->Tussenvoegsel.' '.$userData->Persoon->Achternaam, "dateOfBirth" => $dateOfBirth);
 
-    }
+	}
 
-    /*
+	/*
 		This method will obtain some additional user info: email address, mobile number and the class
-    */
+	*/
 	
 	public function getAdditionalInfo() {
 		$magister = $this->master;

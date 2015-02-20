@@ -3,13 +3,10 @@ require_once 'Attachment.php';
 
 class Magister6_Studyguide {
 	public function __construct(Magister6 $master) {
-        $this->master = $master;
-    }
+		$this->master = $master;
+	}
 
-
-    
-
-    /*
+	/*
 		Get Studyguide content by providing an id.
 
 	*/
@@ -61,11 +58,9 @@ class Magister6_Studyguide {
 
 		$url = $magister->baseURL."/api/leerlingen/".$magister->magisterId."/studiewijzers?peildatum=".date("Y-m-d");
 
-		
-
 	}
 
-	/*
+	/* Some of my stupidness :P
 		Helper Method to get the type of the subject
 		$subjectType == 1 is a language
 		$subjectType == 2 is a beta subject like physics and mathematics
@@ -75,7 +70,7 @@ class Magister6_Studyguide {
 
 	private function getSubjectType($subject) {
 
-        $alpha = array('netl' => 1, 'entl' => 1, 'dutl' => 1, 'fatl' => 1, 'sptl' => 1, 'latl' => 1, 'sp' => 1, 'la' => 1, 'ne' => 1, 'en' => 1, 'du' => 1, 'fa' => 1);
+		$alpha = array('netl' => 1, 'entl' => 1, 'dutl' => 1, 'fatl' => 1, 'sptl' => 1, 'latl' => 1, 'sp' => 1, 'la' => 1, 'ne' => 1, 'en' => 1, 'du' => 1, 'fa' => 1);
 		$beta = array('na' => 1, 'sk' => 1, 'bi' => 1, 'wi' => 1, 'wa' => 1, 'wb' => 1, 'wc' => 1, 'wd' => 1, 'wisa' => 1, 'wisb' => 1, 'wisc' => 1, 'wisd' => 1, 'm&n' => 1, 'anw' => 1);
 		$gamma = array('lv' => 1, 'ma' => 1, 'ec' => 1, 'ak' => 1, 'gs' => 1, 'maw' => 1, 'mo' => 1, 'm&o' =>1, 'm&m' => 1);
 		if (isset($alpha[$subject]))		$subjectType = 1;
@@ -90,7 +85,7 @@ class Magister6_Studyguide {
 }
 
 /*
-	Class to reformat json output
+	Classes to reformat json output
 */
 
 class Studyguide_Adapter {
@@ -109,9 +104,6 @@ class Studyguide_Adapter {
 
 }
 
-/*
-	Class to reformat json output
-*/
 class StudyguideItem_Adapter {
 
 	public $title, $content, $attachments;
