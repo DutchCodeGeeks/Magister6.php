@@ -22,7 +22,7 @@ class Attachment_Adapter {
 		$attachmentUrl = $ur;
 		$attachmentType = $ty;
 		
-		if(empty($ur) || strpos($ur,'/api/leerlingen/')!== false){$attachmentUrl=preg_replace('/\/api\/leerlingen\/[0-9]+/i', '', $ur);}elseif(strpos($ur,'youtube.com/watch?v=')!== false){$attachmentType=4;}else{$attachmentType=3;}
+		if(empty($ur) || strpos($ur,'/api/')!== false){$attachmentUrl=preg_replace('/\/api\/leerlingen\/[0-9]+/i', '', $ur); $attachmentType=1;}elseif(strpos($ur,'youtube.com/watch?v=')!== false){$attachmentType=4;}else{$attachmentType=3;}
 
 		$this->type=$attachmentType;
 		$this->url=$attachmentUrl;

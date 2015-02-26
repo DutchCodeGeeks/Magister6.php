@@ -2,14 +2,24 @@
 date_default_timezone_set('Europe/Amsterdam');
 
 require_once 'Session.php';
+require_once 'Magister6/Exceptions.php';
 require_once 'Magister6/Studyguide.php';
+require_once 'Magister6/Assignment.php';
+require_once 'Magister6/CourseMaterial.php';
 require_once 'Magister6/UserData.php';
 
 class Magister6 {
 
 	public $school, $baseURL, $magisterId, $cookieId, $profile;
 	public $schoolName; //Defined by the getSchoolName() method
-	public $cookieFolder = '/tmp/'; //Save the Magister6 cookies to this folder. N.B.: PHP need write access to this directory! 
+	public $enrollmentId; //Defined by the userData->getAdditionalInfo() method. Needed for fetching subjects and grades 
+	public $cookieFolder = '/tmp/'; //Save the Magister6 cookies to this folder. N.B.: PHP need write access to this directory!
+
+	public $fetchPicture = false; //Want to save the profile pic of the user?
+	public $fetchPictureFolder = ''; //Save the profile pic to this folder.
+	public $fetchPictureSalt = ''; //This is for saving the pictures with a random file name, so paste here your super secret salt :P
+
+	public $loggedIn = false;
 	public $debug = false;
 	public $session;
 	private $sessionName = 'M6-APP_SESSION'; //Name of OUR session cookie, users could see this cookie title
@@ -41,10 +51,15 @@ class Magister6 {
 			$this->post($loginUrl, $postData, $this->cookieId);
 
 			//Get some required user info and pass the $username into it too
-			$this->profile = $this->userData->get($username);
+			$this->profile = $this->userData->get($username, $this->fetchPicture);
+
+			//Get school name
+			$this->schoolName = $this->getSchoolName();
 
 			//Store everything in a session
 			$this->saveToSession();
+
+			$this->loggedIn = true;
 
 		} else {
 
@@ -58,6 +73,8 @@ class Magister6 {
 		*/
 
 		$this->studyguide = new Magister6_Studyguide($this);
+		$this->assignment = new Magister6_Assignment($this);
+		$this->courseMaterial = new Magister6_CourseMaterial($this);
 
 	}
 
@@ -92,7 +109,7 @@ class Magister6 {
 		curl_setopt($ch, CURLOPT_REFERER, $this->baseURL);
 
 		if(isset($cookieId)){
-			$cookieFile = $this->cookieFolder.$cookieId.'.txt';
+			$cookieFile = $this->cookieFolder.$cookieId.'.m6.cookie';
 			curl_setopt($ch, CURLOPT_COOKIEJAR, $cookieFile);
 			curl_setopt($ch, CURLOPT_COOKIEFILE, $cookieFile);
 		}
@@ -121,14 +138,14 @@ class Magister6 {
 		curl_setopt($ch, CURLOPT_USERAGENT, 'Mozilla/5.0 (Windows; U; Windows NT 5.1; en-US; rv:1.8.1.6) Gecko/20070725 Firefox/2.0.0.6');
 		curl_setopt($ch, CURLOPT_SSL_VERIFYPEER, false);
 		curl_setopt($ch, CURLOPT_FOLLOWLOCATION, false);
-		curl_setopt($ch, CURLOPT_HEADER, true);
+		curl_setopt($ch, CURLOPT_HEADER, false);
 		curl_setopt($ch, CURLOPT_RETURNTRANSFER, true);
 		curl_setopt($ch, CURLOPT_CONNECTTIMEOUT, 30);
 		curl_setopt($ch, CURLOPT_TIMEOUT, 60);
 		curl_setopt($ch, CURLOPT_REFERER, $this->baseURL);
 
 		if(isset($cookieId)){
-			$cookieFile = $this->cookieFolder.$cookieId.'.txt';
+			$cookieFile = $this->cookieFolder.$cookieId.'.m6.cookie';
 			curl_setopt($ch, CURLOPT_COOKIEJAR, $cookieFile);
 			curl_setopt($ch, CURLOPT_COOKIEFILE, $cookieFile);
 		}
@@ -144,7 +161,13 @@ class Magister6 {
 		if(curl_errno($ch)){
 			echo 'error:' . curl_error($ch);
 		}
+		$info = curl_getinfo($ch);
 		curl_close($ch);
+
+		if(floor($info['http_code'] / 100) >= 4) {
+			$result = json_decode($result);
+			throw new Magister6_Error('Uh oh, something went wrong: ' . $result->Message);
+		}
 
 		return true;
 
@@ -165,8 +188,8 @@ class Magister6 {
 		*/
 		if ( ! $this->session->isValid(5)) {
 
-			$cookieId = $session->get('cookieId');
-			if (!empty($cookieId)) unlink($cookieFolder.$cookieId.'.txt');
+			$cookieId = $this->session->get('cookieId');
+			if (!empty($cookieId)) unlink($this->cookieFolder.$cookieId.'.m6.cookie');
 			$this->session->destroy();
 
 		}
@@ -182,6 +205,7 @@ class Magister6 {
 		$session = $this->session;
 
 		$session->put('school', $this->school);
+		$session->put('schoolName', $this->schoolName);
 		$session->put('baseURL', $this->baseURL);
 		$session->put('magisterId', $this->magisterId);
 		$session->put('cookieId', $this->cookieId);
@@ -196,12 +220,22 @@ class Magister6 {
 
 	private function retrieveFromSession() {
 
-		$this->school = $this->session->get('school');
-		$this->baseURL = $this->session->get('baseURL');
-		$this->magisterId = $this->session->get('magisterId');
-		$this->cookieId = $this->session->get('cookieId');
+		//Just check if a session variable isn't empty
+		$baseURL = $this->session->get('baseURL');
+		if(empty($baseURL)) {
+			$this->loggedIn = false;
+		}else{
+			$this->loggedIn = true;
+			$this->school = $this->session->get('school');
+			$this->schoolName = $this->session->get('schoolName');
+			$this->baseURL = $baseURL;
+			$this->magisterId = $this->session->get('magisterId');
+			$this->cookieId = $this->session->get('cookieId');
 
-		$this->profile = $this->session->get('profile');
+			$this->profile = $this->session->get('profile');
+			$enrollmentId = $this->session->get('enrollmentId');
+			if ( !empty($enrollmentId) ) $this->enrollmentId = $this->session->get('enrollmentId');
+		}
 
 
 	}
@@ -211,9 +245,11 @@ class Magister6 {
 	*/
 
 	public function parseDateTime($string) {
-
-		$dateTime = date_create($string,timezone_open("UTC"));
-		date_timezone_set($dateTime,timezone_open(date_default_timezone_get()));
+		$dateTime = NULL;
+		if( !empty($string) ){
+			$dateTime = date_create($string,timezone_open("UTC"));
+			date_timezone_set($dateTime,timezone_open(date_default_timezone_get()));
+		}
 
 		return $dateTime;
 
