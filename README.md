@@ -19,8 +19,8 @@ require 'lib/Magister6.php';
 $magister = new Magister6();
 
 if($magister->loggedIn){
-# do some cool stuff
-var_dump($magister->profile);
+    # do some cool stuff
+    var_dump($magister->profile);
 }
 ```
 

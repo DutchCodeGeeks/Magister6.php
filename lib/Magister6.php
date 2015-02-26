@@ -15,8 +15,8 @@ class Magister6 {
 	public $enrollmentId; //Defined by the userData->getAdditionalInfo() method. Needed for fetching subjects and grades 
 	public $cookieFolder = '/tmp/'; //Save the Magister6 cookies to this folder. N.B.: PHP need write access to this directory!
 
-	public $fetchPictureHeight = '75'; //The height of the profile pic
-	public $fetchPictureWidth = '75'; //The width of the profile pic
+	public $fetchPictureHeight = '75'; //The height of the profile pic in pixels
+	public $fetchPictureWidth = '75'; //The width of the profile pic in pixels
 	public $fetchPictureCrop = true; // Crop the pic
 	public $fetchPictureFolder; //Save the profile pic to this folder.
 	public $fetchPictureSalt; //This is for saving the pictures with a random file name, so paste here your super secret salt :P
