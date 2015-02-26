@@ -25,8 +25,7 @@ class Magister6_UserData {
 
 		if($fetchPicture){
 			//Save profile image
-			$fileName = $magister->school.'-'.md5($magister->magisterId.$magister->fetchPictureSalt); //MD5 is fine, it's not a password...
-			$this->getPicture($magister->baseURL.'/api/personen/'.$magister->magisterId.'/foto?width=75&height=75&crop=true', $magister->cookieId);
+			$this->getPicture();
 		}
 
 		return new Profile_Adapter($username, $userData->Persoon->Roepnaam, $lastName, $dateOfBirth);
@@ -66,68 +65,59 @@ class Magister6_UserData {
 	}
 
 
-	public function getPicture($url=null, $cookieId=null){
+	public function getPicture(){
 		$magister = $this->master;
 
 		//Filename will be just a simple md5 function to prevent script kiddies to bulk obtain profile pics
 		$fileName = md5($magister->school.'-'.$magister->magisterId.$magister->fetchPictureSalt).'.jpeg';
-		//Check if everything is ready to be downloaded
-		if( isset($url) && isset($cookieId) ){
 
-			$saveto = $magister->fetchPictureFolder.$fileName;
-			//Download only if it isn't saved yet.
-			if(!file_exists($saveto)){
-				$magister = $this->master;
+		$saveto = $magister->fetchPictureFolder.$fileName;
 
-				$ch=curl_init();
+		//Download only if it isn't saved yet.
+		if(!file_exists($saveto)){
+			$url = $magister->baseURL.'/api/personen/'.$magister->magisterId.'/foto?width='.$magister->fetchPictureWidth.'&height='.$magister->fetchPictureHeight.'&crop='.$magister->fetchPictureCrop;
 
-				curl_setopt($ch, CURLOPT_USERAGENT, 'Mozilla/5.0 (Windows; U; Windows NT 5.1; en-US; rv:1.8.1.6) Gecko/20070725 Firefox/2.0.0.6');
-				curl_setopt($ch, CURLOPT_SSL_VERIFYPEER, false);
-				curl_setopt($ch, CURLOPT_FOLLOWLOCATION, false);
-				curl_setopt($ch, CURLOPT_HEADER, false);
-				curl_setopt($ch, CURLOPT_RETURNTRANSFER, true);
-				curl_setopt($ch, CURLOPT_BINARYTRANSFER, true);
-				curl_setopt($ch, CURLOPT_CONNECTTIMEOUT, 30);
-				curl_setopt($ch, CURLOPT_TIMEOUT, 60);
-				curl_setopt($ch, CURLOPT_REFERER, $magister->baseURL);
+			$ch=curl_init();
 
-				if(isset($cookieId)){
-					$cookieFile = $magister->cookieFolder.$cookieId.'.m6.cookie';
-					curl_setopt($ch, CURLOPT_COOKIEJAR, $cookieFile);
-					curl_setopt($ch, CURLOPT_COOKIEFILE, $cookieFile);
-				}
+			curl_setopt($ch, CURLOPT_USERAGENT, 'Mozilla/5.0 (Windows; U; Windows NT 5.1; en-US; rv:1.8.1.6) Gecko/20070725 Firefox/2.0.0.6');
+			curl_setopt($ch, CURLOPT_SSL_VERIFYPEER, false);
+			curl_setopt($ch, CURLOPT_FOLLOWLOCATION, false);
+			curl_setopt($ch, CURLOPT_HEADER, false);
+			curl_setopt($ch, CURLOPT_RETURNTRANSFER, true);
+			curl_setopt($ch, CURLOPT_BINARYTRANSFER, true);
+			curl_setopt($ch, CURLOPT_CONNECTTIMEOUT, 30);
+			curl_setopt($ch, CURLOPT_TIMEOUT, 60);
+			curl_setopt($ch, CURLOPT_REFERER, $magister->baseURL);
 
-				curl_setopt($ch, CURLOPT_URL, $url);
-				curl_setopt($ch, CURLOPT_SSL_VERIFYHOST, false);
-				curl_setopt($ch, CURLOPT_VERBOSE, $magister->debug);
-
-				$result = curl_exec($ch);
-				if(curl_errno($ch)){
-					echo 'error:' . curl_error($ch);
-				}
-				$info = curl_getinfo($ch);
-				
-				$fp = fopen($saveto,'x');
-				fwrite($fp, $result);
-				fclose($fp);
-
-				curl_close($ch);
-
-				if(floor($info['http_code'] / 100) >= 4) {
-					$result = json_decode($result);
-					throw new Magister6_Error('Uh oh, something went wrong: ' . $result->Message);
-				}
+			if(isset($cookieId)){
+				$cookieFile = $magister->cookieFolder.$magister->cookieId.'.m6.cookie';
+				curl_setopt($ch, CURLOPT_COOKIEJAR, $cookieFile);
+				curl_setopt($ch, CURLOPT_COOKIEFILE, $cookieFile);
 			}
 
-			return true;
+			curl_setopt($ch, CURLOPT_URL, $url);
+			curl_setopt($ch, CURLOPT_SSL_VERIFYHOST, false);
+			curl_setopt($ch, CURLOPT_VERBOSE, $magister->debug);
 
-		} else {
+			$result = curl_exec($ch);
+			if(curl_errno($ch)){
+				echo 'error:' . curl_error($ch);
+			}
+			$info = curl_getinfo($ch);
+			
+			$fp = fopen($saveto,'x');
+			fwrite($fp, $result);
+			fclose($fp);
 
-			//If there are no parameters, just return the file name of the saved profile pic
-			return $fileName;
+			curl_close($ch);
+
+			if(floor($info['http_code'] / 100) >= 4) {
+				$result = json_decode($result);
+				throw new Magister6_Error('Uh oh, something went wrong: ' . $result->Message);
+			}
 		}
 
-
+		return $fileName;
 	}
 
 }
