@@ -168,9 +168,8 @@ class Magister6_Studyguide {
 
 	private function getSubjectName($subject) {
 
-		$subjects = array("en", "fa", "du", "sp", "bi", "maw", "ma", "ec",  "is", "gs", "dr", "mu", "bv", 'be', "ckv", "la", "ku", "sk", "ak", "wi", "lv", "wa", "wb", "wc", "wd", "ne", "anw", "na", "mo", "m&o", "m&n", "m&m", "tl", "rv");
-        $readableSubject = array("Engels", "Frans", "Duits", "Spaans", "Biologie", "Maatschappijwetenschappen", "Maatschappijleer", "Economie", "", "Geschiedenis", "Drama", "Muziek", "Beeldend", "Beeldend", "CKV", "Latijn", "", "Scheikunde", "Aardrijkskunde", "Wiskunde", "Levenbeschouwing", "Wiskunde A", "Wiskunde B", "Wiskunde C", "Wiskunde D", "Nederlands", "Algemene Natuurwetenschappen", "Natuurkunde", "Management & Organisatie", "Management & Organisatie", "Mens & Natuur", "Mens & Maatschappij", "", "Rekenvaardigheid");
-        return str_replace($subjects, $readableSubject, $subject);
+		$readableSubject = array("en" => "Engels", "fa" => "Frans", "du" => "Duits", "sp" => "Spaans", "bi" => "Biologie", "maw" => "Maatschappijwetenschappen", "ma" => "Maatschappijleer", "ec" => "Economie", "gs" => "Geschiedenis", "dr" => "Drama", "mu" => "Muziek", "bv" => "Beeldend", "be" => "Beeldend", "ckv" => "CKV", "la" => "Latijn", "kubv" => "Beeldend", "kube" => "Beeldend", "kumu" => "Muziek", "kudr" => "Drama", "sk" => "Scheikunde", "ak" => "Aardrijkskunde", "wi" => "Wiskunde", "lv" => "Levenbeschouwing", "wa" => "Wiskunde A", "wb" => "Wiskunde B", "wc" => "Wiskunde C", "wd" => "Wiskunde D", "ne" => "Nederlands", "anw" => "ANW", "na" => "Natuurkunde", "mo" => "M&O", "m&o" => "M&O", "m&n" => "M&N", "mn" => "M&N", "m&m" => "M&M", "mm" => "M&M", "rv" => "Rekenvaardigheid", "pex" => "Proefexamens", "kwt" => "KWT", "mentor" => "Mentoruur", "kua" => "Kunst Algemeen", "tl" => "", "wt" => "WT", "sb" => "Gym", "ha" => "Handvaardigheid", "lob" => "LOB", "lo" => "Gym");    	
+    	return strtr($subject, $readableSubject);
 
 	}
 
