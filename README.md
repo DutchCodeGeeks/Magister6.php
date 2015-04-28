@@ -61,12 +61,14 @@ $magister->assignment->get($subjectString);
 require 'lib/Magister6.php';
 $magister = new Magister6();
 
-$magister->fetchPictureHeight = '75'; //Pic height in pixels. Default is 75
-$magister->fetchPictureWidth = '75'; //Pic width in pixels. Default is 75
-$magister->fetchPictureCrop = true; //Crop the pic. Default is true
+$magister->userData->fetchPictureHeight = '75'; //Pic height in pixels. Default is 75
+$magister->userData->fetchPictureWidth = '75'; //Pic width in pixels. Default is 75
+$magister->userData->fetchPictureCrop = true; //Crop the pic. Default is true
 
-$magister->fetchPictureFolder = '/var/www/website.nl/img/profiles/'; //Change this to your wishes. Make sure PHP got write permissions.
-$magister->fetchPictureSalt  = '$0m3SuPER$ecretS@lt!'; //Use a salt for setting the file name.
+$magister->userData->fetchPictureFolder = '/var/www/website.nl/img/profiles/'; //Change this to your wishes. Make sure PHP got write permissions.
+$magister->userData->fetchPictureSalt  = '$0m3SuPER$ecretS@lt!'; //Use a salt for setting the file name.
+
+#You could actually define this code in /lib/Magister6/UserData.php too.
 
 # Now the real deal, this will download it to the folder we just set up:
 $fileName = $magister->userData->getPicture();

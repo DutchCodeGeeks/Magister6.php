@@ -15,12 +15,7 @@ class Magister6 {
 	public $enrollmentId; //Defined by the userData->getAdditionalInfo() method. Needed for fetching subjects and grades 
 	public $cookieFolder = '/tmp/'; //Save the Magister6 cookies to this folder. N.B.: PHP need write access to this directory!
 
-	public $fetchPictureHeight = '75'; //The height of the profile pic in pixels
-	public $fetchPictureWidth = '75'; //The width of the profile pic in pixels
-	public $fetchPictureCrop = true; // Crop the pic
-	public $fetchPictureFolder; //Save the profile pic to this folder.
-	public $fetchPictureSalt; //This is for saving the pictures with a random file name, so paste here your super secret salt :P
-
+	public $fetchPicture = false; //Fetch the Picture when obtaining user info.
 	public $loggedIn = false;
 	public $debug = false;
 	public $session;
@@ -93,7 +88,6 @@ class Magister6 {
 	}
 
 	/* HELPER METHODS:
-	
 		CURL GET REQUEST 
 	*/
 
@@ -174,6 +168,68 @@ class Magister6 {
 		return true;
 
 
+	}
+
+
+	/*
+		CURL GET REQUEST AND SAVE FILE. 
+	*/
+
+	public function getAndSave($url, $postData=null, $cookieId=null, $fileName) {
+
+		//Check if everything is ready to be downloaded
+		if( isset($url) && isset($cookieId)  && isset($fileName)) {
+
+			if(!file_exists($fileName)){
+
+				$ch=curl_init();
+
+				curl_setopt($ch, CURLOPT_USERAGENT, 'Mozilla/5.0 (Windows; U; Windows NT 5.1; en-US; rv:1.8.1.6) Gecko/20070725 Firefox/2.0.0.6');
+				curl_setopt($ch, CURLOPT_SSL_VERIFYPEER, false);
+				curl_setopt($ch, CURLOPT_FOLLOWLOCATION, false);
+				curl_setopt($ch, CURLOPT_HEADER, false);
+				curl_setopt($ch, CURLOPT_RETURNTRANSFER, true);
+				curl_setopt($ch, CURLOPT_BINARYTRANSFER, true);
+				curl_setopt($ch, CURLOPT_CONNECTTIMEOUT, 30);
+				curl_setopt($ch, CURLOPT_TIMEOUT, 60);
+				curl_setopt($ch, CURLOPT_REFERER, $magister->baseURL);
+
+				if(isset($cookieId)) {
+					$cookieFile = $this->cookieFolder.$cookieId.'.m6.cookie';
+					curl_setopt($ch, CURLOPT_COOKIEJAR, $cookieFile);
+					curl_setopt($ch, CURLOPT_COOKIEFILE, $cookieFile);
+				}
+
+				if(isset($postData)) {
+					curl_setopt($ch, CURLOPT_POST, true);
+					curl_setopt($ch, CURLOPT_POSTFIELDS, $postData);
+				}
+
+				curl_setopt($ch, CURLOPT_URL, $url);
+				curl_setopt($ch, CURLOPT_SSL_VERIFYHOST, false);
+				curl_setopt($ch, CURLOPT_VERBOSE, $this->debug);
+
+				$result = curl_exec($ch);
+				if(curl_errno($ch)){
+					echo 'error:' . curl_error($ch);
+				}
+				$info = curl_getinfo($ch);
+				
+				$fp = fopen($saveto,'x');
+				fwrite($fp, $result);
+				fclose($fp);
+
+				curl_close($ch);
+
+				if(floor($info['http_code'] / 100) >= 4) {
+					$result = json_decode($result);
+					throw new Magister6_Error('Uh oh, something went wrong: ' . $result->Message);
+				}
+
+			} 
+
+			return true;
+		}
 	}
 
 	/*
